@@ -116,7 +116,7 @@ while running:
                 anim_count = 12
         elif keys[pygame.K_RIGHT] and player.x < 838:
             player.x += player.speed
-            if anim_count > -1 and anim_count<6:
+            if anim_count > -1 and anim_count<5:
                 anim_count +=1
             else:
                 anim_count = 0
