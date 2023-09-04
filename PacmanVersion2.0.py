@@ -1,4 +1,7 @@
 import pygame
+import person
+import obj
+import enemy
 import time
 import sqlite3
 import random
@@ -10,7 +13,6 @@ sql.execute("""CREATE TABLE IF NOT EXISTS user(
     cash BIGINT
 )""")
 db.commit()
-# db.close()
 fill_lose = True
 clock = pygame.time.Clock()
 pygame.init()
@@ -21,98 +23,18 @@ pygame.display.set_icon(icon)
 bg = pygame.image.load('image/lnC4o.png').convert()
 i = 0 
 
-class Obj():
-    x = 0
-    y = 0
-    sprites = []
-    def __init__(self, pl_x, pl_y, spr):
-        self.sprites = spr
-        self.x = pl_x
-        self.y = pl_y
-    def rect(self):
-        return self.sprites[0].get_rect(topleft=(self.x, self.y))
-
-class Person():
-    health = 0
-    speed = 0
-    coin = 0
-    name = ""
-    surname = ""
-    x = 0
-    y = 0
-    sprites = []
-    def __init__(self, pl_x, pl_y, h, sp, coins,name, surname, sprite_game = [    
-    pygame.image.load('image/PacMan_Only (2).png'),
-    pygame.image.load('image/PacMan_Only (2).png'),
-    pygame.image.load('image/PacMan_Only (2).png'),
-    pygame.image.load('image/PacMan_Only (3).png'),
-    pygame.image.load('image/PacMan_Only (3).png'),
-    pygame.image.load('image/PacMan_Only (3).png'),  
-    pygame.image.load('image/PacMan_Only (4).png'),
-    pygame.image.load('image/PacMan_Only (4).png'),
-    pygame.image.load('image/PacMan_Only (4).png'),
-    pygame.image.load('image/PacMan_Only (5).png'),
-    pygame.image.load('image/PacMan_Only (5).png'),
-    pygame.image.load('image/PacMan_Only (5).png')]):
-        self.x = pl_x
-        self.y = pl_y
-        self.health = h
-        self.speed = sp
-        self.coin = coins
-        self.sprites = sprite_game
-        self.name = name
-        self.surname = surname
-    def rect(self):
-        return self.sprites[0].get_rect(topleft=(self.x, self.y))
-
-class Enemy:
-    x = 0
-    y = 0
-    health = 0
-    speed = 0
-    damage = 0
-    sprites = []
-    i = 0
-    def __init__(self, pl_x, pl_y, h, sp, d, sprite_game = [
-    pygame.image.load('image/pngwing.png'),
-    pygame.image.load('image/pngwing2.png')
-    ], i =0):
-        self.x = pl_x
-        self.y = pl_y
-        self.damage = d 
-        self.health  = h
-        self.speed = sp
-        self.sprites = sprite_game
-        self.i = i
-    def rect(self):
-        return self.sprites[0].get_rect(topleft=(self.x, self.y))
-    def walk_enemy (self):
-        if self.y < 619 and self.i == 0:
-                if self.y == 618:
-                    self.i = 1
-                self.y += self.speed
-        elif self.y > 17 and self.i == 1: 
-                if self.y == 18:
-                    self.i= 0
-                self.y -= self.speed
-        else:
-            self.x= 640
-            self.y =18
-        
-
-
-enemy = []
+enemys = []
 i_enemy = 0
 x_enemy = 640
-coin = [Obj(100, 100,[
+coin = [obj.Obj(100, 100,[
     pygame.image.load('image/coin.png')
 ])]
 
-write_name = Obj(240, 170, [
+write_name = obj.Obj(240, 170, [
     pygame.image.load('image/li.png'),
     pygame.image.load('image/li.png')
 ])
-write_sur = Obj(240, 310, [
+write_sur = obj.Obj(240, 310, [
     pygame.image.load('image/li.png'),
     pygame.image.load('image/li.png')
 ])
@@ -156,23 +78,12 @@ while running:
         screen.fill('Black')
         sql_play = True
         screen.blit(player.sprites[anim_count], (player.x, player.y))
-        l_enemy = len(enemy)
+        l_enemy = len(enemys)
 
         for f in range(1,l_enemy):
-            screen.blit(enemy[f].sprites[enemy_count], (enemy[f].x, enemy[f].y))
-            en_rect = enemy[f].rect()
-            enemy[f].walk_enemy()
-            # if enemy[f].y < 619 and enemy[f].i == 0:
-            #     if enemy[f].y == 618:
-            #         enemy[f].i = 1
-            #     enemy[f].y += enemy[f].speed
-            # elif enemy[f].y > 17 and enemy[f].i == 1: 
-            #     if enemy[f].y == 18:
-            #         enemy[f].i= 0
-            #     enemy[f].y -= enemy[f].speed
-            # else:
-            #     enemy[f].x= 640
-            #     enemy[f].y =18
+            screen.blit(enemys[f].sprites[enemy_count], (enemys[f].x, enemys[f].y))
+            en_rect = enemys[f].rect()
+            enemys[f].walk_enemy()
         screen.blit(coin[0].sprites[0], (coin[0].x, coin[0].y))
         player_rect = player.rect()
         coin_rect = coin[0].rect()
@@ -182,51 +93,45 @@ while running:
             ry = random.randint(18,600)
             coin.pop()
             i +=30
-            enemy.append(Enemy(x_enemy - i,18, 100,5,100))
-            coin.append(Obj(rx, ry,[
+            enemys.append(enemy.Enemy(x_enemy - i,18, 100,5,100))
+            coin.append(obj.Obj(rx, ry,[
             pygame.image.load('image/coin.png')
             ]))
             player.coin += 1
-        l_enemy = len(enemy)
+        l_enemy = len(enemys)
         for f in range(1,l_enemy):
-            en_rect = enemy[f].rect()
+            en_rect = enemys[f].rect()
             if player_rect.colliderect(en_rect):
                 lose_sound.play()
-                player.health -= enemy[f].damage
+                player.health -= enemys[f].damage
                 time.sleep(1)
                 gameplay = False
                 continue
-
-
-
-    
-
-
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT] and player.x > 12:
             player.x -= player.speed
-            if anim_count != 5 and anim_count<6:
+            if anim_count < 17 and anim_count>=12:
                 anim_count +=1
             else:
-                anim_count = 0
+                anim_count = 12
         elif keys[pygame.K_RIGHT] and player.x < 838:
             player.x += player.speed
-            if anim_count != 5 and anim_count<6:
+            if anim_count > -1 and anim_count<6:
                 anim_count +=1
             else:
                 anim_count = 0
         elif keys[pygame.K_DOWN] and player.y < 688:
             player.y += player.speed
-            if anim_count != 11 and anim_count >= 6 :
+            if anim_count < 11 and anim_count >= 6 :
                 anim_count +=1
             else:
                 anim_count = 6
         elif keys[pygame.K_UP] and player.y > 12:
             player.y -= player.speed
-            if anim_count != 5:
+            if anim_count < 23 and anim_count >= 18:
                 anim_count +=1
             else:
-                anim_count = 0
+                anim_count = 18
     elif gamestart:
         screen.fill('Black')
         
@@ -246,9 +151,9 @@ while running:
             gameplay = True
             gamestart = False
 
-            enemy.append(Enemy(x_enemy,18, 100,10,100))
+            enemys.append(enemy.Enemy(x_enemy,18, 100,10,100))
             
-            player = Person( 13, 13, 100, 15, 0, input_text_name, input_text_sur)
+            player = person.Person( 13, 13, 100, 15, 0, input_text_name, input_text_sur)
             
             need_input_name = False
             need_input_sur = False
@@ -311,9 +216,8 @@ while running:
             coin[0].x = 400
             coin[0].y = 400
             player.health=100
-            enemy.clear()
+            enemys.clear()
             i = 0
-
         
     pygame.display.update()
     for event in pygame.event.get():
